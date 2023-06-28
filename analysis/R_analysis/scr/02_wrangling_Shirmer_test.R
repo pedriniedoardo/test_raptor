@@ -43,7 +43,7 @@ tpm <- function(counts, lengths) {
 
 # read in the data --------------------------------------------------------
 # read in the raw total table of counts per sample
-df_counts <- readRDS("../../out/object/pseudobulk_jakell_counts_wholeSample_raw.rds") %>% 
+df_counts <- readRDS("../../out/object/pseudobulk_shirmer_counts_wholeSample_raw.rds") %>% 
   data.frame() %>% 
   rownames_to_column("symbol")
 
@@ -97,7 +97,7 @@ LUT_genes_full <-
 
 # save the gene annotation
 LUT_genes_full %>% 
-  write_tsv("../../out/table/lUT_gene_full_Jakell.tsv")
+  write_tsv("../../out/table/lUT_gene_full_Schirmer.tsv")
 
 # shortlist the GOI
 LUT_genes_full_filter <- LUT_genes_full %>% 
@@ -110,14 +110,14 @@ LUT_genes_full_filter <- LUT_genes_full %>%
 df_counts_full <- LUT_genes_full_filter %>% 
   left_join(df_counts,"symbol")
 
-saveRDS(df_counts_full,"../../out/object/pseudobulk_jakell_wholeSample_raw_filter_full.rds")
+saveRDS(df_counts_full,"../../out/object/pseudobulk_shirmer_wholeSample_raw_filter_full.rds")
 
 # select only the info of interest
 df_counts_full_ensembl <- df_counts_full %>% 
   dplyr::select(-c(1,2,4,5,6)) %>% 
   column_to_rownames("ensembl")
 
-saveRDS(df_counts_full_ensembl,"../../out/object/pseudobulk_jakell_wholeSample_raw_filter_ensembl.rds")
+saveRDS(df_counts_full_ensembl,"../../out/object/pseudobulk_shirmer_wholeSample_raw_filter_ensembl.rds")
 
 # calculate the TPM
 genes <- data.frame(ensembl = df_counts_full$ensembl,
@@ -129,4 +129,4 @@ df_TPM <- apply(df_counts_full_ensembl,MARGIN = 2,function(x){
   tpm(x, genes$gene_length)
   # print(x)
 })
-saveRDS(df_TPM,"../../out/object/pseudobulk_jakell_wholeSample_TPM_filter_ensembl.rds")
+saveRDS(df_TPM,"../../out/object/pseudobulk_shirmer_wholeSample_TPM_filter_ensembl.rds")
