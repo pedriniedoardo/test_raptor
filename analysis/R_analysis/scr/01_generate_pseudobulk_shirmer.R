@@ -110,11 +110,11 @@ data.combined.all$pseudobulk2 <- paste0(data.combined.all$pathology_fix,
                                         data.combined.all$sample_number_fix)
 
 # add it also to the main metadata
-meta_full$pseudobulk2 <- paste0(meta_full$pathology_fix,
+meta_full$pseudobulk2 <- paste0(data.combined.all$pathology_fix,
                                 ".",
-                                meta_full$disease,
+                                data.combined.all$disease,
                                 ".",
-                                meta_full$sample_number_fix)
+                                data.combined.all$sample_number_fix)
 
 # save the aggregtated table of counts raw
 matrix_counts_alt <- AggregateExpression(object = data.combined.all,
