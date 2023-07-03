@@ -34,21 +34,21 @@ ref02 <- readRDS("../../out/object/pseudobulk_shirmer_wholeSample_TPM_filter_ens
 df_test <- readRDS("../../out/object/pseudobulk_all20_wholeSample_TPM_filter_ensembl.rds")
 
 # read in the metadata
-LUT_ref01 <- read_tsv("../../out/table/meta_full_jakell.tsv") %>% 
-  group_by(pseudobulk2,age) %>% 
-  summarise() %>% 
+LUT_ref01 <- read_tsv("../../out/table/meta_full_jakell.tsv") %>%
+  group_by(pseudobulk2,age) %>%
+  summarise() %>%
   ungroup() %>%
   # fix the naming of one sample
-  mutate(pseudobulk2 = str_replace_all(pseudobulk2,pattern = "/",replacement = ".")) %>% 
-  # slice_sample(n = 20) %>% 
+  mutate(pseudobulk2 = str_replace_all(pseudobulk2,pattern = "/",replacement = ".")) %>%
+  # slice_sample(n = 20) %>%
   # order the meta as in the column of the df_test
   dplyr::slice(match(colnames(ref01),.$pseudobulk2))
 
-LUT_ref02 <- read_tsv("../../out/table/meta_full_shirmer.tsv") %>% 
-  group_by(pseudobulk2,age) %>% 
-  summarise() %>% 
+LUT_ref02 <- read_tsv("../../out/table/meta_full_shirmer.tsv") %>%
+  group_by(pseudobulk2,age) %>%
+  summarise() %>%
   ungroup() %>%
-  # slice_sample(n = 20) %>% 
+  # slice_sample(n = 20) %>%
   # order the meta as in the column of the df_test
   dplyr::slice(match(colnames(ref02),.$pseudobulk2))
 
@@ -63,23 +63,15 @@ LUT_Absinta <- read_tsv("../../out/table/meta_full.tsv") %>%
 # wrangling ---------------------------------------------------------------
 # define the ref using the controls samples from the ref dataasets
 # merge the two ref dataset to generate a single one
-dim(ref01)
+# dim(ref01)
 dim(ref02)
 
-ref_tot <- ref01 %>% 
-  data.frame() %>% 
-  rownames_to_column("gene") %>% 
-  inner_join(ref02 %>% 
-              data.frame() %>% 
-              rownames_to_column("gene")) %>% 
-  column_to_rownames("gene")
+ref_tot <- ref02
 
 dim(ref_tot)
 
 # join also the LUT
-LUT_ref_tot <- LUT_ref01 %>% 
-  bind_rows(LUT_ref02) %>%
-  dplyr::slice(match(colnames(ref_tot),.$pseudobulk2))
+LUT_ref_tot <- LUT_ref02
 
 dim(LUT_ref_tot)
 
@@ -122,20 +114,20 @@ pca_df_ref <- summary(prcomp(t(df_ref_norm[sel_mon2,]), center = T, scale. = F, 
 # selsamp <- c(T,F)
 
 # build the model for a subset of g47 samples
-# m_df_ref <- ge_im(X = df_ref_norm[sel_mon2,],method = "glm",
-#                   p = meta_ref,
-#                   formula = "X ~ age",
-#                   dim_red = "pca", nc = 1)
+m_df_ref <- ge_im(X = df_ref_norm[sel_mon2,],method = "glm",
+                  p = meta_ref,
+                  formula = "X ~ age",
+                  dim_red = "pca", nc = 1)
 
 # m_df_ref <- ge_im(X = df_ref_norm[sel_mon2,],method = "limma",
 #                   p = meta_ref,
 #                   formula = "X ~ age",
 #                   dim_red = "pca", nc = 1)
 
-m_df_ref <- ge_im(X = df_ref_norm[sel_mon2,],method = "gam",
-                  p = meta_ref,
-                  formula = "X ~ s(age, bs = 'cr')",
-                  dim_red = "pca", nc = 1)
+# m_df_ref <- ge_im(X = df_ref_norm[sel_mon2,],method = "gam",
+#                   p = meta_ref,
+#                   formula = "X ~ s(age, bs = 'cr')",
+#                   dim_red = "pca", nc = 1)
 
 # build an even rank of 500 steps in ages from the min to the max
 n.inter <- 500
@@ -214,6 +206,5 @@ list(LUT_Absinta = LUT_Absinta %>%
   mutate(pathology = factor(pathology,levels = c("CTRL","NAWM","CI","A","CA","CORE","RM"))) %>% 
   ggplot(aes(x=pathology,y=delta_age)) + 
   geom_boxplot(outlier.shape = NA) +
-  geom_point(position = position_jitter(width = 0.2),alpha = 0.5)+theme_bw()+geom_hline(yintercept = 0,linetype = "dashed",col="gray")+facet_wrap(~dataset,scales = "free_x")+theme(strip.background = element_blank(),axis.text.x = element_text(hjust = 1,angle = 45))+ggtitle("reference Jakell & Shirmer")
-ggsave("../../out/image/RAPTor_reference_JakellShirmer.pdf",width = 9,height = 5)
-
+  geom_point(position = position_jitter(width = 0.2),alpha = 0.5)+theme_bw()+geom_hline(yintercept = 0,linetype = "dashed",col="gray")+facet_wrap(~dataset,scales = "free_x")+theme(strip.background = element_blank(),axis.text.x = element_text(hjust = 1,angle = 45))+ggtitle("reference Shirmer")
+ggsave("../../out/image/RAPTor_reference_Shirmer.pdf",width = 9,height = 5)

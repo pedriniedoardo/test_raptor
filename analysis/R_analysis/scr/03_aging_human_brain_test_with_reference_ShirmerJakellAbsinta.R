@@ -1,3 +1,6 @@
+# AIM ---------------------------------------------------------------------
+# with this alternative approach I am merging all the datasets are reference so they have all the same set of genes in the buildingo of the reference (using Martina's samples)
+
 # libraries ---------------------------------------------------------------
 library(tidyverse)
 library(RAPToR)
@@ -28,10 +31,13 @@ sts <- function(x, y, sel=T){
 
 # read in the data fro building the reference
 ref01 <- readRDS("../../out/object/pseudobulk_jakell_wholeSample_TPM_filter_ensembl.rds")
+colnames(ref01) <- paste0("jakell.",colnames(ref01))
 ref02 <- readRDS("../../out/object/pseudobulk_shirmer_wholeSample_TPM_filter_ensembl.rds")
+colnames(ref02) <- paste0("shirmer.",colnames(ref02))
 
 # read in the test dataset
 df_test <- readRDS("../../out/object/pseudobulk_all20_wholeSample_TPM_filter_ensembl.rds")
+colnames(df_test) <- paste0("absinta.",colnames(df_test))
 
 # read in the metadata
 LUT_ref01 <- read_tsv("../../out/table/meta_full_jakell.tsv") %>% 
@@ -39,26 +45,29 @@ LUT_ref01 <- read_tsv("../../out/table/meta_full_jakell.tsv") %>%
   summarise() %>% 
   ungroup() %>%
   # fix the naming of one sample
-  mutate(pseudobulk2 = str_replace_all(pseudobulk2,pattern = "/",replacement = ".")) %>% 
+  mutate(pseudobulk2 = str_replace_all(pseudobulk2,pattern = "/",replacement = ".")) %>%
+  mutate(pseudobulk2_fix = paste0("jakell.",pseudobulk2)) %>%
   # slice_sample(n = 20) %>% 
   # order the meta as in the column of the df_test
-  dplyr::slice(match(colnames(ref01),.$pseudobulk2))
+  dplyr::slice(match(colnames(ref01),.$pseudobulk2_fix))
 
 LUT_ref02 <- read_tsv("../../out/table/meta_full_shirmer.tsv") %>% 
   group_by(pseudobulk2,age) %>% 
   summarise() %>% 
   ungroup() %>%
+  mutate(pseudobulk2_fix = paste0("shirmer.",pseudobulk2)) %>%
   # slice_sample(n = 20) %>% 
   # order the meta as in the column of the df_test
-  dplyr::slice(match(colnames(ref02),.$pseudobulk2))
+  dplyr::slice(match(colnames(ref02),.$pseudobulk2_fix))
 
 LUT_Absinta <- read_tsv("../../out/table/meta_full.tsv") %>% 
   group_by(pseudobulk2,age.x,pathology_fix,disease,sample_number_fix) %>% 
   summarise() %>% 
   ungroup() %>%
+  mutate(pseudobulk2_fix = paste0("absinta.",pseudobulk2)) %>%
   # slice_sample(n = 20) %>% 
   # order the meta as in the column of the df_test
-  dplyr::slice(match(colnames(df_test),.$pseudobulk2))
+  dplyr::slice(match(colnames(df_test),.$pseudobulk2_fix))
 
 # wrangling ---------------------------------------------------------------
 # define the ref using the controls samples from the ref dataasets
@@ -70,23 +79,32 @@ ref_tot <- ref01 %>%
   data.frame() %>% 
   rownames_to_column("gene") %>% 
   inner_join(ref02 %>% 
-              data.frame() %>% 
-              rownames_to_column("gene")) %>% 
+               data.frame() %>% 
+               rownames_to_column("gene")) %>%
+  inner_join(df_test %>% 
+               data.frame() %>% 
+               rownames_to_column("gene")) %>%
   column_to_rownames("gene")
 
 dim(ref_tot)
+colnames(ref_tot)
 
 # join also the LUT
 LUT_ref_tot <- LUT_ref01 %>% 
   bind_rows(LUT_ref02) %>%
-  dplyr::slice(match(colnames(ref_tot),.$pseudobulk2))
+  bind_rows(LUT_Absinta %>%
+              dplyr::select("pseudobulk2","age"=age.x,"pseudobulk2_fix")) %>%
+  dplyr::slice(match(colnames(ref_tot),.$pseudobulk2_fix))
 
 dim(LUT_ref_tot)
 
 # identify all the control samples
-id_ref <- ref_tot %>% 
+test_colname <- ref_tot %>% 
   colnames() %>% 
-  str_detect(pattern = "CTRL")
+  # str_subset(pattern = "absinta",negate = T) %>% 
+  str_subset(pattern = "CTRL",negate = F)
+
+id_ref <- (ref_tot %>% colnames()) %in% test_colname
 
 df_ref <- ref_tot[,id_ref]
 
@@ -215,5 +233,5 @@ list(LUT_Absinta = LUT_Absinta %>%
   ggplot(aes(x=pathology,y=delta_age)) + 
   geom_boxplot(outlier.shape = NA) +
   geom_point(position = position_jitter(width = 0.2),alpha = 0.5)+theme_bw()+geom_hline(yintercept = 0,linetype = "dashed",col="gray")+facet_wrap(~dataset,scales = "free_x")+theme(strip.background = element_blank(),axis.text.x = element_text(hjust = 1,angle = 45))+ggtitle("reference Jakell & Shirmer")
-ggsave("../../out/image/RAPTor_reference_JakellShirmer.pdf",width = 9,height = 5)
+ggsave("../../out/image/RAPTor_reference_JakellShirmer_alt.pdf",width = 9,height = 5)
 
