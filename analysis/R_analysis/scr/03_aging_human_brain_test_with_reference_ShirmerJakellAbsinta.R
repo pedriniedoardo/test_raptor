@@ -74,6 +74,7 @@ LUT_Absinta <- read_tsv("../../out/table/meta_full.tsv") %>%
 # merge the two ref dataset to generate a single one
 dim(ref01)
 dim(ref02)
+dim(df_test)
 
 ref_tot <- ref01 %>% 
   data.frame() %>% 
@@ -153,7 +154,7 @@ pca_df_ref <- summary(prcomp(t(df_ref_norm[sel_mon2,]), center = T, scale. = F, 
 m_df_ref <- ge_im(X = df_ref_norm[sel_mon2,],method = "gam",
                   p = meta_ref,
                   formula = "X ~ s(age, bs = 'cr')",
-                  dim_red = "pca", nc = 1)
+                  dim_red = "pca", nc = 10)
 
 # build an even rank of 500 steps in ages from the min to the max
 n.inter <- 500
@@ -232,6 +233,6 @@ list(LUT_Absinta = LUT_Absinta %>%
   mutate(pathology = factor(pathology,levels = c("CTRL","NAWM","CI","A","CA","CORE","RM"))) %>% 
   ggplot(aes(x=pathology,y=delta_age)) + 
   geom_boxplot(outlier.shape = NA) +
-  geom_point(position = position_jitter(width = 0.2),alpha = 0.5)+theme_bw()+geom_hline(yintercept = 0,linetype = "dashed",col="gray")+facet_wrap(~dataset,scales = "free_x")+theme(strip.background = element_blank(),axis.text.x = element_text(hjust = 1,angle = 45))+ggtitle("reference Jakell & Shirmer")
-ggsave("../../out/image/RAPTor_reference_JakellShirmer_alt.pdf",width = 9,height = 5)
+  geom_point(position = position_jitter(width = 0.2),alpha = 0.5)+theme_bw()+geom_hline(yintercept = 0,linetype = "dashed",col="gray")+facet_wrap(~dataset,scales = "free_x")+theme(strip.background = element_blank(),axis.text.x = element_text(hjust = 1,angle = 45))+ggtitle("reference Absinta Jakell & Shirmer")
+ggsave("../../out/image/RAPTor_reference_AbsintaJakellShirmer.pdf",width = 9,height = 5)
 
