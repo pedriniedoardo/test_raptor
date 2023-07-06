@@ -264,3 +264,15 @@ list(LUT_Absinta = LUT_Absinta %>%
   geom_boxplot(outlier.shape = NA) +
   geom_point(position = position_jitter(width = 0.2),alpha = 0.5)+theme_bw()+geom_hline(yintercept = 0,linetype = "dashed",col="gray")+facet_wrap(~dataset,scales = "free_x")+theme(strip.background = element_blank(),axis.text.x = element_text(hjust = 1,angle = 45))+ggtitle("reference Leng Absinta Jakell & Shirmer")
 ggsave("../../out/image/RAPTor_reference_LengAbsintaJakellShirmer.pdf",width = 9,height = 5)
+
+# save the full meta of the age and of the reference
+meta_ref %>% 
+  write_tsv("../../out/table/meta_ref_LengAbsintaJakellShirmer.tsv")
+
+list(LUT_Absinta = LUT_Absinta %>%
+       dplyr::select(pseudobulk2,pseudobulk2_fix,age=age.x,ae_r_df_ref),
+     LUT_jakell = LUT_ref01,
+     LUT_shirmer = LUT_ref02) %>% 
+  bind_rows(.id = "dataset") %>% 
+  mutate(delta_age = ae_r_df_ref - age) %>% 
+  write_tsv("../../out/table/table_EstimateAge_LengAbsintaJakellShirmer.tsv")
